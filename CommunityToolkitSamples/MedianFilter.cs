@@ -18,16 +18,17 @@ public class MedianFilter
         customConfig.PreferContiguousImageBuffers = true;
 
         var image = Image.Load<L8>("mandrill.png");
+        image.Save("mandrill_gray.png");
         imageWithBorder = new Image<L8>(customConfig, image.Width + 2, image.Height + 2);
         imageWithBorder.Mutate(x =>
         {
             x.Fill(Color.Black);
             x.DrawImage(
-                image, 
-                new Rectangle(1, 1, image.Width, image.Height), 
+                image,
+                new Point(1, 1), 
                 1f);
         });
-        imageWithBorder.SaveAsPng("dst_org.png");
+        imageWithBorder.SaveAsPng("src_imagesharp.png");
         
         dstImage1 = imageWithBorder.Clone(customConfig);
         dstImage2 = imageWithBorder.Clone(customConfig);
@@ -41,7 +42,7 @@ public class MedianFilter
     [Benchmark]
     public void Memory2d()
     {
-        unsafe
+        //unsafe
         {
             var width = imageWithBorder.Width;
             var height = imageWithBorder.Height;
@@ -63,7 +64,7 @@ public class MedianFilter
                 }
             }
 
-            //dstImage1.SaveAsPng("dst1.png");
+            dstImage1.SaveAsPng("dst1.png");
         }
     }
 
@@ -75,6 +76,6 @@ public class MedianFilter
         {
             x.MedianBlur(1, false);
         });
-        //dstImage2.SaveAsPng("dst2.png");
+        dstImage2.SaveAsPng("dst2.png");
     }
 }
