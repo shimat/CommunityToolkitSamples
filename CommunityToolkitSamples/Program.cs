@@ -2,10 +2,12 @@
 using CommunityToolkitSamples;
 using OpenCvSharp;
 
+/*
 var f = new MedianFilter();
 f.IterationSetup();
 f.Memory2d();
 f.ImageSharp();
+//*/
 
 /*
 using var src = new Mat("mandrill_gray.png", ImreadModes.Grayscale);
@@ -19,18 +21,12 @@ dst.SaveImage("dst_opencv.png");
 //BenchmarkRunner.Run<MedianFilter>();
 
 
+
 /*
+var f = new ColorToGrayscale();
+f.BySingleThread();
+f.ByParallelHelper();
+f.ByImageSharp();
+//*/
 
-var m = new Memory2D<byte>();
-using var h = m.Pin();
-
-
-var array = new float[10000];
-ParallelHelper.ForEach<float, ByTwoMultiplier>(array);
-array.ToString();
-
-public readonly struct ByTwoMultiplier : IRefAction<float>
-{
-    public void Invoke(ref float x) => x *= 2;
-}
-*/
+BenchmarkRunner.Run<ColorToGrayscale>();
