@@ -10,7 +10,7 @@ f.ByMemory2d();
 f.ByImageSharp();
 //*/
 
-BenchmarkRunner.Run<MedianFilter>();
+//BenchmarkRunner.Run<MedianFilter>();
 
 
 
@@ -21,4 +21,4 @@ f.ByParallelHelper();
 f.ByImageSharp();
 //*/
 
-//BenchmarkRunner.Run<ColorToGrayscale>();
+BenchmarkRunner.Run<ColorToGrayscale>();
