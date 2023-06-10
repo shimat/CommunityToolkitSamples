@@ -2,9 +2,12 @@
 using SixLabors.ImageSharp;
 using CommunityToolkit.HighPerformance.Helpers;
 using System.Diagnostics;
+using SixLabors.ImageSharp.Memory;
+using SixLabors.ImageSharp.Drawing.Processing;
 
 namespace CommunityToolkitSamples;
 
+[MemoryDiagnoser]
 public class ColorToGrayscale
 {
     private readonly Configuration customConfig;
@@ -14,7 +17,14 @@ public class ColorToGrayscale
     {
         customConfig = Configuration.Default.Clone();
         customConfig.PreferContiguousImageBuffers = true;
-        srcImage = Image.Load<Bgr24>("mandrill_x10.png");
+
+        // 連続領域を強制したい
+        using var srcOrgImage = Image.Load<Bgr24>("mandrill_x10.png");
+        srcImage = new Image<Bgr24>(customConfig, srcOrgImage.Width, srcOrgImage.Height);
+        srcImage.Mutate(x =>
+        {
+            x.DrawImage(srcOrgImage, 1f);
+        });
     }
     
     [Benchmark]
@@ -23,6 +33,8 @@ public class ColorToGrayscale
         using var dstImage = new Image<L8>(customConfig, srcImage.Width, srcImage.Height);
         srcImage.DangerousTryGetSinglePixelMemory(out var srcMemory);
         dstImage.DangerousTryGetSinglePixelMemory(out var dstMemory);
+        Debug.Assert(!srcMemory.IsEmpty);
+        Debug.Assert(!dstMemory.IsEmpty);
 
         var srcSpan = srcMemory.Span;
         var dstSpan = dstMemory.Span;
@@ -34,7 +46,7 @@ public class ColorToGrayscale
             dstSpan[i] = new L8((byte)(bgr.R * 0.299 + bgr.G * 0.587 + bgr.B * 0.114));
         }
         
-        //dstImage.SaveAsPng("grayscale_dst1.png");
+        dstImage.SaveAsPng("dst_grayscale_singlethread.png");
     }
 
     [Benchmark]
@@ -43,6 +55,8 @@ public class ColorToGrayscale
         using var dstImage = new Image<L8>(customConfig, srcImage.Width, srcImage.Height);
         srcImage.DangerousTryGetSinglePixelMemory(out var srcMemory);
         dstImage.DangerousTryGetSinglePixelMemory(out var dstMemory);
+        Debug.Assert(!srcMemory.IsEmpty);
+        Debug.Assert(!dstMemory.IsEmpty);
 
         using var srcHandle = srcMemory.Pin();
         using var dstHandle = dstMemory.Pin();
@@ -52,7 +66,7 @@ public class ColorToGrayscale
             ParallelHelper.For(0, srcMemory.Length, action);
         }
 
-        //dstImage.SaveAsPng("grayscale_dst2.png");
+        dstImage.SaveAsPng("dst_grayscale_parallel.png");
     }
 
     [Benchmark]
@@ -63,7 +77,7 @@ public class ColorToGrayscale
         {
             x.Grayscale(GrayscaleMode.Bt601);
         });
-        //dstImage.SaveAsPng("grayscale_dst3.png");
+        dstImage.SaveAsPng("dst_grayscale_imagesharp.png");
     }
 }
 

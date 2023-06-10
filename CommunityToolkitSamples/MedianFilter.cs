@@ -2,10 +2,12 @@
 using CommunityToolkit.HighPerformance;
 using OpenCvSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
+using System.Diagnostics;
 using Point = SixLabors.ImageSharp.Point;
 
 namespace CommunityToolkitSamples;
 
+[MemoryDiagnoser]
 public class MedianFilter
 {
     private readonly Configuration customConfig;
@@ -17,7 +19,7 @@ public class MedianFilter
         customConfig = Configuration.Default.Clone();
         customConfig.PreferContiguousImageBuffers = true;
 
-        var srcOrgImage = Image.Load<L8>("mandrill_gray.png");
+        var srcOrgImage = Image.Load<L8>("mandrill_gray_x5.png");
         //srcImage.Save("mandrill_gray.png");
         srcImage = new Image<L8>(customConfig, srcOrgImage.Width + 2, srcOrgImage.Height + 2);
         srcImage.Mutate(x =>
@@ -30,7 +32,7 @@ public class MedianFilter
         });
         //srcImage.SaveAsPng("src_imagesharp.png");
 
-        srcMat = new Mat("mandrill_gray.png", ImreadModes.Grayscale);
+        srcMat = new Mat("mandrill_gray_x5.png", ImreadModes.Grayscale);
         Cv2.CopyMakeBorder(srcMat, srcMat, 1, 1, 1, 1, BorderTypes.Constant, Scalar.Black);
     }
 
@@ -56,6 +58,8 @@ public class MedianFilter
 
         srcImage.DangerousTryGetSinglePixelMemory(out var srcMemory);
         dstImage.DangerousTryGetSinglePixelMemory(out var dstMemory);
+        Debug.Assert(!srcMemory.IsEmpty);
+        Debug.Assert(!dstMemory.IsEmpty);
 
         using var srcHandle = srcMemory.Pin();
         using var dstHandle = dstMemory.Pin();
@@ -97,18 +101,21 @@ public class MedianFilter
 
         srcImage.DangerousTryGetSinglePixelMemory(out var srcMemory);
         dstImage.DangerousTryGetSinglePixelMemory(out var dstMemory);
-        var srcMemory2d = srcMemory.AsMemory2D(height, width);
-        var dstMemory2d = dstMemory.AsMemory2D(height, width);
+        Debug.Assert(!srcMemory.IsEmpty);
+        Debug.Assert(!dstMemory.IsEmpty);
+
+        var srcMemory2d = srcMemory.AsBytes().AsMemory2D(height, width);
+        var dstMemory2d = dstMemory.AsBytes().AsMemory2D(height, width);
         var dstSpan2d = dstMemory2d.Span;
 
-        Span<L8> buffer = stackalloc L8[9];
+        Span<byte> buffer = stackalloc byte[9];
         for (int y = 1; y < height - 1; y++)
         {
             for (int x = 1; x < width - 1; x++)
             {
                 var m = srcMemory2d.Slice(y - 1, x - 1, 3, 3);
                 m.Span.CopyTo(buffer);
-                buffer.AsBytes().Sort();
+                buffer.Sort();
                 dstSpan2d[y, x] = buffer[4];
             }
         }

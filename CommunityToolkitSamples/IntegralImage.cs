@@ -29,10 +29,14 @@ public class IntegralImage
     public int[,] ByOpenCV()
     {
         using var srcMat = Mat.FromArray(srcData);
-        int[,] dstData = new int[srcMat.Rows, srcMat.Cols];
+        int rows = srcMat.Rows;
+        int cols = srcMat.Cols;
+
         using var dstMat = new Mat();
 
-        Cv2.Integral(srcMat, dstMat);
+        Cv2.Integral(srcMat, dstMat, MatType.CV_32SC1);
+
+        dstMat.GetRectangularArray(out int[,] dstData);
         return dstData;
     }
 
@@ -44,24 +48,14 @@ public class IntegralImage
         if (rows == 0 || cols == 0)
             return new int[0, 0];
 
-        int[,] dstData = new int[rows, cols];
+        int[,] dstData = new int[rows + 1, cols + 1];
 
-        // 1行目
-        for (int x = 0, sum = 0; x < cols; x++)
-        {
-            var s = srcData[0, x];
-            dstData[0, x] = s + sum;
-            sum += s;
-        }
-
-        // 2行目以降
-        for (int y = 1; y < rows; y++)
+        for (int y = 0; y < rows; y++)
         {
             for (int x = 0, sum = 0; x < cols; x++)
             {
-                var s = srcData[y, x];
-                dstData[0, x] = s + sum + srcData[y-1, x];
-                sum += s;
+                sum += srcData[y, x];
+                dstData[y + 1, x + 1] = sum + dstData[y, x + 1];
             }
         }
 
