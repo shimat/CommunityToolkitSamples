@@ -23,7 +23,7 @@ f.ByParallelHelper();
 f.ByImageSharp();
 //*/
 
-BenchmarkRunner.Run<ColorToGrayscale>();
+//BenchmarkRunner.Run<ColorToGrayscale>();
 
 //////////////////////////////////////////
 
@@ -38,14 +38,18 @@ f.ToString();
 //*/
 
 //////////////////////////////////////////
-/*
+///*
 var f = new TemplateMatching();
 var r1 = f.ByOpenCV();
-var r2 = f.ByMemory2D();
+var r2 = f.ByMemory2d();
+var r3 = f.ByMemory2dParallel();
 OutputFloatImage(r1, "dst_tm_opencv.png");
 OutputFloatImage(r2, "dst_tm_memory2d.png");
-ShowFloatImages(r1, r2);
+OutputFloatImage(r2, "dst_tm_memory2d_parallel.png");
+//ShowFloatImages(r1, r2, r3);
 //*/
+
+//BenchmarkRunner.Run<TemplateMatching>();
 
 
 void Show2dArray<T>(T[,] array)
@@ -61,6 +65,7 @@ void OutputFloatImage(float[,] data, string outputFileName)
 {
     using var mat = Mat.FromArray(data);
     mat.ConvertTo(mat, MatType.CV_8UC1, 255);
+    Cv2.ApplyColorMap(mat, mat, ColormapTypes.Hot);
     mat.SaveImage(outputFileName);
 }
 
