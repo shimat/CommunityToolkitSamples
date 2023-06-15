@@ -86,8 +86,8 @@ public class TemplateMatching
                     }
                 }
 
-                var numerator = Math.Sqrt(srcSqSum * tmplSqSum);
-                dstData[y, x] = (float)(diffSqSum / numerator);
+                var denominator = Math.Sqrt(srcSqSum * tmplSqSum);
+                dstData[y, x] = (float)(diffSqSum / denominator);
             }
         }
 
@@ -159,8 +159,8 @@ public readonly unsafe struct TemplateMatchAction : IAction2D
             }
         }
 
-        var numerator = Math.Sqrt(srcSqSum * tmplSqSum);
-        dstData[y, x] = (float)(diffSqSum / numerator);
+        var denominator = Math.Sqrt(srcSqSum * tmplSqSum);
+        dstData[y, x] = (float)(diffSqSum / denominator);
     }
 }
 
